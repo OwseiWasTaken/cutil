@@ -1,6 +1,7 @@
 #ifndef cutil 
 #define cutil
 
+// Inclues
 #include <termios.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,26 +14,16 @@
 #include <time.h>
 #include <assert.h>
 #include <fcntl.h>
-
 #include <sys/types.h>
 #include <stdbool.h>
 
+// Types
 typedef unsigned int  uint;
 typedef unsigned char uint8;
 typedef unsigned char byte;
+// cresent values
 typedef unsigned long kbkey;
 typedef signed   char int8;
-
-#define PI 3.141592
-
-// max len for single key, +1 for \0
-#define MAXSCHARLEN 9
-// last key buffer, when StartCh is on
-char lk[MAXSCHARLEN];
-// default size for io buffer
-char stdinbuff[BUFSIZ];
-// unbuffered ch
-bool StartCh;
 
 typedef struct {
 	int year, day, hour, minute, seccond;
@@ -43,14 +34,45 @@ typedef struct {
 	int y, x;
 } point;
 
-// intensity and color
+typedef struct {
+	float y, x;
+} ppoint;
+
 typedef struct {
 	byte R, G, B;
 } color;
 
-// "dinamy" lib
+// cresent values
+typedef struct {
+	byte *values;
+	size_t size;
+} dint;
+
+// Definitios
+#define PI 3.141592
+// max len for single key, +1 for \0
+#define MAXSCHARLEN 9
+// i guess
+#define MAXCOLORLEN 19
+
+// Globals
+// last key buffer, when StartCh is on
+char lk[MAXSCHARLEN];
+// default size for io buffer
+char stdinbuff[BUFSIZ];
+// unbuffered ch
+bool StartCh;
+
+// Colors
+#define	Red "\x1b[38;2;255;0;0m"
+#define	White "\x1b[38;2;255;255;255m"
+#define	nc "\x1b[38;2;255;255;255m"
+
+// Cutil files
+// funcs
 #include "keys.c"
 
+// keys
 #include "cutil.c"
 
 #endif
