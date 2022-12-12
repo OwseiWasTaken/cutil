@@ -106,6 +106,7 @@ int isquare (int base) {
 	return ipow(base, 2);
 }
 
+// ANSII
 void move(int y, int x) {
 	printf("\x1B[%d;%dH", y+1, x+1);
 }
@@ -118,11 +119,8 @@ void ShowCursor() {
 	puts("\x1b[?25h");
 }
 
-// ANSII (text) rgb
-char* TRGB(uint8 R, uint8 G, uint8 B) {
-	char* buff = malloc(21);
-	sprintf(buff, "\x1b[38;2;%d;%d;%dm", R, G, B);
-	return buff;
+void TRGB(char* buff, color RGB) {
+	sprintf(buff, "\x1b[38;2;%d;%d;%dm", RGB.R, RGB.G, RGB.B);
 }
 
 point GetTerminalSize() {
