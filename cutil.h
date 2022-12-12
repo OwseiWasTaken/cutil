@@ -24,12 +24,14 @@ typedef unsigned long kbkey;
 typedef signed   char int8;
 
 #define PI 3.141592
-// Max len for single key, +1 for \0
+
+// max len for single key, +1 for \0
 #define MAXSCHARLEN 9
 // last key buffer, when StartCh is on
 char lk[MAXSCHARLEN];
 // default size for io buffer
 char stdinbuff[BUFSIZ];
+// unbuffered ch
 bool StartCh;
 
 typedef struct {
@@ -40,6 +42,11 @@ typedef struct {
 typedef struct {
 	int y, x;
 } point;
+
+// intensity and color
+typedef struct {
+	byte R, G, B;
+} color;
 
 // "dinamy" lib
 #include "keys.c"
