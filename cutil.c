@@ -90,6 +90,7 @@ fmttime FmtTime(time_t rn, int UTF) {
 	return now;
 }
 
+//TODO: not dynamic
 char* FmtTimeToString(fmttime now) {
 	char* buff = malloc(38);
 	sprintf(buff, "s:%d\nm:%d\nh:%d\nd:%d\ny:%d\n\nM:%s\nW:%s",
@@ -106,6 +107,16 @@ int isquare (int base) {
 	return ipow(base, 2);
 }
 
+ppoint bhask (size_t a, size_t b, size_t c) {
+	ppoint p = {.x=0.0, .y=0.0};
+	float delt = sqrt(isquare(b) - (4*a*c));
+	b *= -1;
+	a *= 2;
+	p.x = (b + delt) / a;
+	p.y = (b - delt) / a;
+	return p;
+}
+
 // ANSII
 void move(int y, int x) {
 	printf("\x1B[%d;%dH", y+1, x+1);
@@ -119,8 +130,12 @@ void ShowCursor() {
 	puts("\x1b[?25h");
 }
 
-void TRGB(char* buff, color RGB) {
+void TsRGB(char* buff, color RGB) {
 	sprintf(buff, "\x1b[38;2;%d;%d;%dm", RGB.R, RGB.G, RGB.B);
+}
+
+void TRGB(char* buff, byte R, byte G, byte B) {
+	sprintf(buff, "\x1b[38;2;%hhu;%hhu;%hhum", R, G, B);
 }
 
 point GetTerminalSize() {
@@ -130,3 +145,42 @@ point GetTerminalSize() {
 	return p;
 }
 
+//TODO: dynamic int
+//dint MakeDint(size_t size) {
+//	dint d = {.size = size, .values = malloc(size)};
+//	return d;
+//}
+//
+//inline bool overflow(char c, int add) {
+//	return ((c+add)%255)<c;
+//}
+//
+//void _Print_Dint(dint d) {
+//	for (int i = 0; i<d.size; i++) {
+//		printf("%hhu,", d.values[i]);
+//	}
+//	printf("\b \n");
+//}
+//
+//void AddsiDint (dint *d, int add, int offset) {
+//	byte c;
+//	for (int i = 0; i<sizeof(add); i++) {
+//		c = (byte)(add>>(8*i))%254;
+//		printf("%i: add: %hhu from %u of: %d == %d\n",
+//			i, c, add>>(8*i),
+//			(d->values[i]+c)%255<d->values[i],
+//			overflow(d->values[i], c)
+//		);
+//		if (!c) {continue;}
+//		if (overflow(d->values[i], c)) {
+//			d->values[i+1]++;
+//		}
+//		d->values[i] += c;
+//	}
+//}
+//
+//void FreeDint(dint *d) {
+//	free(d->values);
+//	d = NULL;
+//}
+//
