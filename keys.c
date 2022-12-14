@@ -1,3 +1,6 @@
+#ifndef cutil_keys
+#define cutil_keys 1
+
 #define KEY_C_A 1
 #define KEY_C_B 2
 #define KEY_C_C 3
@@ -145,3 +148,5 @@
 #define KEY_ball /* TODO: get a good name */ 45250
 #define KEY_â 41667
 #define KEY_ã 41923
+
+#endif

@@ -1,8 +1,11 @@
+#ifndef cutil_funcs
+#define cutil_funcs 1
+
 // IO
 void StartChTerm (FILE* log) {
-	if (StartCh) return;
+	if (_StartCh) return;
 	setvbuf(stdin, lk, _IOFBF, MAXSCHARLEN);
-	StartCh = true;
+	_StartCh = true;
 
 	struct termios term;
 	tcgetattr(STDIN_FILENO, &term);
@@ -18,9 +21,9 @@ void StartChTerm (FILE* log) {
 }
 
 void StopChTerm (FILE* log) {
-	if (!StartCh) return;
+	if (!_StartCh) return;
 	setvbuf(stdin, stdinbuff, _IOLBF, BUFSIZ);
-	StartCh = false;
+	_StartCh = false;
 
 	system("/bin/stty $(/bin/cat /tmp/restore)");
 	if (log) fprintf(log, "\ntty config restored\n");
@@ -28,6 +31,8 @@ void StopChTerm (FILE* log) {
 	system("/bin/rm /tmp/restore");
 	if (log) fprintf(log, "file '/tmp/restore' deleted\n");
 }
+
+inline bool IsChTermOn() { return _StartCh; }
 
 byte GetCh () {
 	// clean lk
@@ -55,6 +60,12 @@ kbkey GetChId () {
 	}
 	return r;
 }
+
+bool CheckKey(kbkey keyid) {
+	return LtoK()==keyid;
+}
+
+int flush() {return fflush(stdout);}
 
 // Time
 fmttime FmtTime (const time_t rn, const int UTF) {
@@ -182,4 +193,4 @@ void _Print_Point(const point p) {
 //	d = NULL;
 //}
 
-
+#endif
