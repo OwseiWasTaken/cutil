@@ -1,5 +1,5 @@
 // IO
-void StartChTerm ( FILE* log ) {
+void StartChTerm (FILE* log) {
 	if (StartCh) return;
 	setvbuf(stdin, lk, _IOFBF, MAXSCHARLEN);
 	StartCh = true;
@@ -29,14 +29,14 @@ void StopChTerm (FILE* log) {
 	if (log) fprintf(log, "file '/tmp/restore' deleted\n");
 }
 
-byte GetCh() {
+byte GetCh () {
 	// clean lk
 	memset(lk, 0, MAXSCHARLEN);
 	// get single char, set lk
 	return getc(stdin);
 }
 
-kbkey LtoK() {
+kbkey LtoK () {
 	kbkey r = 0;
 	int MaxI = strlen(lk);
 	for (int i = 0; i<MaxI; i++) {
@@ -45,7 +45,7 @@ kbkey LtoK() {
 	return r;
 }
 
-kbkey GetChId() {
+kbkey GetChId () {
 	memset(lk, 0, MAXSCHARLEN);
 	getc(stdin);
 	kbkey r = 0;
@@ -57,7 +57,7 @@ kbkey GetChId() {
 }
 
 // Time
-fmttime FmtTime(time_t rn, int UTF) {
+fmttime FmtTime (time_t rn, int UTF) {
 	fmttime now;
 
 	char* timetext = ctime(&rn);
@@ -87,13 +87,13 @@ fmttime FmtTime(time_t rn, int UTF) {
 }
 
 //TODO: not dynamic
-void FmtTimeToString(fmttime now, char* buff) {
+void FmtTimeToString (fmttime now, char* buff) {
 	sprintf(buff, "s:%d\nm:%d\nh:%d\nd:%d\ny:%d\n\nM:%s\nW:%s",
 		now.seccond, now.minute, now.hour, now.day, now.year, now.month, now.weekday);
 }
 
 // Math
-int ipow(int base, int power) {
+int ipow (int base, int power) {
 	return (int)pow((double)base, (double)power);
 }
 
@@ -112,27 +112,27 @@ ppoint bhask (size_t a, size_t b, size_t c) {
 }
 
 // ANSII
-void move(int y, int x) {
+void move (int y, int x) {
 	printf("\x1B[%d;%dH", y+1, x+1);
 }
 
-void HideCursor() {
+void HideCursor () {
 	puts("\x1b[?25l");
 }
 
-void ShowCursor() {
+void ShowCursor () {
 	puts("\x1b[?25h");
 }
 
-void TsRGB(char* buff, color RGB) {
+void TsRGB (char* buff, color RGB) {
 	sprintf(buff, "\x1b[38;2;%d;%d;%dm", RGB.R, RGB.G, RGB.B);
 }
 
-void TRGB(char* buff, byte R, byte G, byte B) {
+void TRGB (char* buff, byte R, byte G, byte B) {
 	sprintf(buff, "\x1b[38;2;%hhu;%hhu;%hhum", R, G, B);
 }
 
-point GetTerminalSize() {
+point GetTerminalSize () {
 	struct winsize w;
 	ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 	point p = {.y = w.ws_col, .x = w.ws_row};
