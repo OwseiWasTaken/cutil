@@ -62,19 +62,19 @@ fmttime FmtTime(time_t rn, int UTF) {
 
 	char* timetext = ctime(&rn);
 
-	//TODO: test this
+	// string manipulation
 	memcpy(now.weekday, (timetext), 3);
-	//now.weekday[0] = timetext[0];
-	//now.weekday[1] = timetext[1];
-	//now.weekday[2] = timetext[2];
 	now.weekday[4] = '\0';
 
 	memcpy(now.month, (timetext+4), 3);
-	//now.month[0] = timetext[4];
-	//now.month[1] = timetext[5];
-	//now.month[2] = timetext[6];
 	now.month[3] = '\0';
 
+	now.day = timetext[9]-'0';
+	if (timetext[8] != ' ') {
+		now.day += 10*(timetext[8]-'0');
+	};
+
+	// ctime manipulation
 	now.minute = (rn%(60*60))/60;
 	now.seccond= rn%60;
 	now.year = 1970+(int)(rn/(24.0*3600.0)/365.25);
@@ -83,19 +83,13 @@ fmttime FmtTime(time_t rn, int UTF) {
 		now.hour = 24+now.hour;
 	}
 
-	now.day = timetext[9]-'0';
-	if (timetext[8] != ' ') {
-		now.day += 10*(timetext[8]-'0');
-	};
 	return now;
 }
 
 //TODO: not dynamic
-char* FmtTimeToString(fmttime now) {
-	char* buff = malloc(38);
+void FmtTimeToString(fmttime now, char* buff) {
 	sprintf(buff, "s:%d\nm:%d\nh:%d\nd:%d\ny:%d\n\nM:%s\nW:%s",
 		now.seccond, now.minute, now.hour, now.day, now.year, now.month, now.weekday);
-	return buff;
 }
 
 // Math
