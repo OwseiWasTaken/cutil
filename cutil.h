@@ -1,5 +1,5 @@
 #ifndef cutil 
-#define cutil
+#define cutil 1
 
 // Inclues
 #include <termios.h>
@@ -18,12 +18,12 @@
 #include <stdbool.h>
 
 // Types
-typedef unsigned int  uint;
+typedef signed char int8;
+typedef unsigned int uint;
 typedef unsigned char uint8;
 typedef unsigned char byte;
 // cresent values
 typedef unsigned long kbkey;
-typedef signed   char int8;
 
 typedef struct {
 	int year, day, hour, minute, seccond;
