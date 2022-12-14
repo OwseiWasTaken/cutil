@@ -124,11 +124,11 @@ void ShowCursor () {
 	puts("\x1b[?25h");
 }
 
-void TsRGB (const char* buff, color RGB) {
+void TsRGB (char* buff, const color RGB) {
 	sprintf(buff, "\x1b[38;2;%d;%d;%dm", RGB.R, RGB.G, RGB.B);
 }
 
-void TRGB (const char* buff, byte R, byte G, byte B) {
+void TRGB (char* buff, const byte R, const byte G, const byte B) {
 	sprintf(buff, "\x1b[38;2;%hhu;%hhu;%hhum", R, G, B);
 }
 
