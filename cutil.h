@@ -27,7 +27,7 @@ typedef signed   char int8;
 
 typedef struct {
 	int year, day, hour, minute, seccond;
-	char weekday[4], month[4];
+	char weekday[4], month[4]; // NULL terminated
 } fmttime;
 
 typedef struct {
