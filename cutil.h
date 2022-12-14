@@ -1,4 +1,4 @@
-#ifndef cutil 
+#ifndef cutil
 #define cutil 1
 
 // Inclues
@@ -61,7 +61,7 @@ char lk[MAXSCHARLEN];
 // default size for io buffer
 char stdinbuff[BUFSIZ];
 // unbuffered ch
-bool StartCh;
+bool _StartCh;
 
 // Colors
 #define	Red "\x1b[38;2;255;0;0m"
