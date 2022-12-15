@@ -3,11 +3,11 @@
 int main(void) {
 	StartChTerm(NULL);
 	point TermSize = GetTerminalSize();
-	point cursor = MakePoint(2,2);
+	int y = 2, x = 2;
 	long k = 0;
 
 	while (k!=KEY_q){
-		pmove(cursor); // move
+		move(y, x); // move
 		flush(); // and show
 
 		k = GetChId();
