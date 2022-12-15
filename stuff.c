@@ -15,9 +15,13 @@ void StartChTerm (FILE* log) {
 	if (log) fprintf(log, "tty config saved to '/tmp/restore'\n");
 
 	char reconfig[36+10]; /* 36 = comamnd len, 10 = /dev/ttyNN */
+	// -F for this tty
+	// -echo to show chars
+	// cbreak to keep ^C -> SIGINT
+	// min 1 = feed buffer to program
 	sprintf(reconfig, "/bin/stty -F %s -echo cbreak min 1", ttyname(STDIN_FILENO));
-	if (log) fprintf(log, "tty reconfigured so no system-side buffering\n");
 	system(reconfig);
+	if (log) fprintf(log, "tty reconfigured, so linefeed buffering is off\n");
 }
 
 void StopChTerm (FILE* log) {
@@ -128,18 +132,18 @@ ppoint bhask (size_t a, size_t b, const size_t c) {
 
 // ANSII
 void move (const int y, const int x) {
-	printf("\x1B[%d;%dH", y, x);
+	printf(ESC"[%d;%dH", y, x);
 }
 
 void pmove (const point p) {
-	printf("\x1B[%d;%dH", p.y, p.x);
+	printf(ESC"[%d;%dH", p.y, p.x);
 }
 
-void HideCursor () {
+inline void HideCursor () {
 	puts(ESC"[?25l");
 }
 
-void ShowCursor () {
+inline void ShowCursor () {
 	puts(ESC"[?25h");
 }
 
@@ -168,8 +172,14 @@ const point GetTerminalSize () {
 	return p;
 }
 
+// structs
 void _Print_Point(const point p) {
 	printf("{%i,%i}", p.y, p.x);
+}
+
+color RGB(byte r, byte g, byte b) {
+	color c = {.R=r, .G=g, .B=b};
+	return c;
 }
 
 //TODO: dynamic int
