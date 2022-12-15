@@ -51,21 +51,17 @@ kbkey LtoK () {
 	return r;
 }
 
+// check last key against check id
+bool CheckKey(kbkey check) {
+	return LtoK()==check;
+}
+
+// recomemded Ch funcs
 // GetCh, LtoK, return key id
 kbkey GetChId () {
 	memset(_lk, 0, MAXSCHARLEN);
 	getc(stdin);
-	kbkey r = LtoK();
-	int MaxI = strlen(_lk);
-	for (int i = 0; i<MaxI; i++) {
-		r += (byte) _lk[i]<<(8*i);
-	}
-	return r;
-}
-
-// check last key against check id
-bool CheckKey(kbkey check) {
-	return LtoK()==check;
+	return LtoK();
 }
 
 // check last id against check id
@@ -73,6 +69,7 @@ bool CheckLastKey(kbkey check) {
 	return _keyid==check;
 }
 
+// flush stdout
 int flush() {return fflush(stdout);}
 
 // Time
@@ -105,7 +102,6 @@ fmttime FmtTime (const time_t rn, const int UTF) {
 	return now;
 }
 
-//TODO: not dynamic
 void FmtTimeToString (const fmttime now, char* buff) {
 	sprintf(buff, "s:%d\nm:%d\nh:%d\nd:%d\ny:%d\n\nM:%s\nW:%s",
 		now.seccond, now.minute, now.hour, now.day, now.year, now.month, now.weekday);
@@ -132,29 +128,43 @@ ppoint bhask (size_t a, size_t b, const size_t c) {
 
 // ANSII
 void move (const int y, const int x) {
-	printf("\x1B[%d;%dH", y+1, x+1);
+	printf("\x1B[%d;%dH", y, x);
+}
+
+void pmove (const point p) {
+	printf("\x1B[%d;%dH", p.y, p.x);
 }
 
 void HideCursor () {
-	puts("\x1b[?25l");
+	puts(ESC"[?25l");
 }
 
 void ShowCursor () {
-	puts("\x1b[?25h");
+	puts(ESC"[?25h");
+}
+
+void ClearLine(const int y, const int x) {
+	move(y, x);
+	puts(ESC"[2K");
+}
+
+void pClearLine(const point p) {
+	pmove(p);
+	puts(ESC"[2K");
 }
 
 void TsRGB (char* buff, const color RGB) {
-	sprintf(buff, "\x1b[38;2;%d;%d;%dm", RGB.R, RGB.G, RGB.B);
+	sprintf(buff, ESC"[38;2;%d;%d;%dm", RGB.R, RGB.G, RGB.B);
 }
 
 void TRGB (char* buff, const byte R, const byte G, const byte B) {
-	sprintf(buff, "\x1b[38;2;%hhu;%hhu;%hhum", R, G, B);
+	sprintf(buff, ESC"[38;2;%hhu;%hhu;%hhum", R, G, B);
 }
 
 const point GetTerminalSize () {
 	struct winsize w;
 	ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-	point p = {.y = w.ws_col, .x = w.ws_row};
+	point p = {.x = w.ws_col, .y = w.ws_row};
 	return p;
 }
 
