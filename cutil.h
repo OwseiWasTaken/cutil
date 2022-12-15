@@ -53,7 +53,7 @@ typedef struct {
 // max len for single key, +1 for \0
 #define MAXSCHARLEN 9
 // i guess
-#define MAXCOLORLEN 19
+#define MAXCOLORLEN 20
 // escape char
 #define ESC "\x1b" // 27
 
