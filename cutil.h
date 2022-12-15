@@ -57,7 +57,9 @@ typedef struct {
 
 // Globals
 // last key buffer, when StartCh is on
-char lk[MAXSCHARLEN];
+char _lk[MAXSCHARLEN];
+// last key id
+kbkey _keyid;
 // default size for io buffer
 char stdinbuff[BUFSIZ];
 // unbuffered ch

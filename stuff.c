@@ -4,7 +4,7 @@
 // IO
 void StartChTerm (FILE* log) {
 	if (_StartCh) return;
-	setvbuf(stdin, lk, _IOFBF, MAXSCHARLEN);
+	setvbuf(stdin, _lk, _IOFBF, MAXSCHARLEN);
 	_StartCh = true;
 
 	struct termios term;
@@ -35,34 +35,42 @@ void StopChTerm (FILE* log) {
 inline bool IsChTermOn() { return _StartCh; }
 
 byte GetCh () {
-	// clean lk
-	memset(lk, 0, MAXSCHARLEN);
-	// get single char, set lk
+	// clean _lk
+	memset(_lk, 0, MAXSCHARLEN);
+	// get first char, set lk
 	return getc(stdin);
 }
 
+// transform last key to key id, return id
 kbkey LtoK () {
 	kbkey r = 0;
-	int MaxI = strlen(lk);
-	for (int i = 0; i<MaxI; i++) {
-		r += (byte) lk[i]<<(8*i);
+	for (int i = 0; i<MAXSCHARLEN-1; i++) {
+		r += (byte) _lk[i]<<(8*i);
 	}
+	_keyid = r;
 	return r;
 }
 
+// GetCh, LtoK, return key id
 kbkey GetChId () {
-	memset(lk, 0, MAXSCHARLEN);
+	memset(_lk, 0, MAXSCHARLEN);
 	getc(stdin);
-	kbkey r = 0;
-	int MaxI = strlen(lk);
+	kbkey r = LtoK();
+	int MaxI = strlen(_lk);
 	for (int i = 0; i<MaxI; i++) {
-		r += (byte) lk[i]<<(8*i);
+		r += (byte) _lk[i]<<(8*i);
 	}
 	return r;
 }
 
-bool CheckKey(kbkey keyid) {
-	return LtoK()==keyid;
+// check last key against check id
+bool CheckKey(kbkey check) {
+	return LtoK()==check;
+}
+
+// check last id against check id
+bool CheckLastKey(kbkey check) {
+	return _keyid==check;
 }
 
 int flush() {return fflush(stdout);}
