@@ -54,6 +54,8 @@ typedef struct {
 #define MAXSCHARLEN 9
 // i guess
 #define MAXCOLORLEN 19
+// escape char
+#define ESC "\x1b" // 27
 
 // Globals
 // last key buffer, when StartCh is on
