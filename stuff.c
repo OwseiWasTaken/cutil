@@ -2,7 +2,7 @@
 #define cutil_funcs 1
 
 // IO
-void StartChTerm (FILE* log) {
+void StartChTerm (FILE *log) {
 	if (_StartCh) return;
 	setvbuf(stdin, _lk, _IOFBF, MAXSCHARLEN);
 	_StartCh = true;
@@ -24,7 +24,7 @@ void StartChTerm (FILE* log) {
 	if (log) fprintf(log, "tty reconfigured, so linefeed buffering is off\n");
 }
 
-void StopChTerm (FILE* log) {
+void StopChTerm (FILE *log) {
 	if (!_StartCh) return;
 	setvbuf(stdin, stdinbuff, _IOLBF, BUFSIZ);
 	_StartCh = false;
@@ -76,11 +76,54 @@ bool CheckLastKey(kbkey check) {
 // flush stdout
 int flush() {return fflush(stdout);}
 
+int GetFdCount () {
+	int fdcount;
+	// /self/ or getpid()
+	DIR *dir = opendir("/proc/self/fd/");
+	for (fdcount = 0; readdir(dir) != NULL; fdcount++);
+
+	// print dir names
+	//struct dirent *dp;
+	//for (fdcount = 0; (dp = readdir(dir)) != NULL; fdcount++) {
+	//	printf("%s\n", dp->d_name);
+	//}
+
+	closedir(dir);
+	return fdcount - 3; // ., .., this dirfd
+}
+
+bool CheckValidFd(int fd) {
+	int fdcount;
+	char fdstr[CountDecimalDigits(fd)];
+	sprintf(fdstr, "%i", fd);
+	// /self/ or getpid()
+	DIR *dir = opendir("/proc/self/fd/");
+
+	// print dir names
+	struct dirent *dp;
+	for (fdcount = 0; (dp = readdir(dir)) != NULL; fdcount++) {
+		if (!strcmp(dp->d_name, fdstr)) {
+			closedir(dir);
+			return false;
+		}
+	}
+
+	closedir(dir);
+	return true;
+}
+
+int GetValidFd() {
+	int i;
+	for (i = 0; !CheckValidFd(i); i++);
+	if (i > MAXFDS) { return -1; } // TODO: set errno
+	return i;
+}
+
 // Time
 fmttime FmtTime (const time_t rn, const int UTF) {
 	fmttime now;
 
-	char* timetext = ctime(&rn);
+	char *timetext = ctime(&rn);
 
 	// string manipulation
 	memcpy(now.weekday, (timetext), 3);
@@ -106,7 +149,7 @@ fmttime FmtTime (const time_t rn, const int UTF) {
 	return now;
 }
 
-void FmtTimeToString (const fmttime now, char* buff) {
+void FmtTimeToString (const fmttime now, char *buff) {
 	sprintf(buff, "s:%d\nm:%d\nh:%d\nd:%d\ny:%d\n\nM:%s\nW:%s",
 		now.seccond, now.minute, now.hour, now.day, now.year, now.month, now.weekday);
 }
@@ -118,6 +161,12 @@ int ipow (const int base, const int power) {
 
 int isquare (const int base) {
 	return ipow(base, 2);
+}
+
+int CountDecimalDigits( int v ) {
+	int i;
+	for (i = 0; v; i++) {v = v/10;}
+	return i;
 }
 
 ppoint bhask (size_t a, size_t b, const size_t c) {
@@ -157,11 +206,11 @@ void pClearLine(const point p) {
 	puts(ESC"[2K");
 }
 
-void TsRGB (char* buff, const color RGB) {
+void TsRGB (char *buff, const color RGB) {
 	sprintf(buff, ESC"[38;2;%d;%d;%dm", RGB.R, RGB.G, RGB.B);
 }
 
-void TRGB (char* buff, const byte R, const byte G, const byte B) {
+void TRGB (char *buff, const byte R, const byte G, const byte B) {
 	sprintf(buff, ESC"[38;2;%hhu;%hhu;%hhum", R, G, B);
 }
 
@@ -170,6 +219,10 @@ const point GetTerminalSize () {
 	ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 	point p = {.x = w.ws_col, .y = w.ws_row};
 	return p;
+}
+
+inline char* BoolToStr(bool b) {
+	return b?"true":"false";
 }
 
 // structs
