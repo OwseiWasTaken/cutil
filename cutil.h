@@ -16,6 +16,7 @@
 #include <fcntl.h>
 #include <sys/types.h>
 #include <stdbool.h>
+#include <dirent.h>
 
 // Types
 typedef signed char int8;
@@ -27,7 +28,8 @@ typedef unsigned long kbkey;
 
 typedef struct {
 	int year, day, hour, minute, seccond;
-	char weekday[4], month[4]; // NULL terminated
+	// NULL terminated
+	char weekday[4], month[4];
 } fmttime;
 
 typedef struct {
@@ -56,6 +58,10 @@ typedef struct {
 #define MAXCOLORLEN 20
 // escape char
 #define ESC "\x1b" // 27
+// max (default) number of opened files
+// soft limit
+#define MAXFDS 1024
+// hard limit = 1'048'576
 
 // Globals
 // last key buffer, when StartCh is on
@@ -66,6 +72,10 @@ kbkey _keyid;
 char stdinbuff[BUFSIZ];
 // unbuffered ch
 bool _StartCh;
+
+// funcs used before they are defined
+int CountDecimalDigits( int v );
+
 
 // Colors
 #define	Red "\x1b[38;2;255;0;0m"
