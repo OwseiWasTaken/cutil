@@ -37,6 +37,14 @@ typedef struct {
 } point;
 
 typedef struct {
+	uint y, x;
+} upoint;
+
+typedef struct {
+	float a, r;
+} polar;
+
+typedef struct {
 	float y, x;
 } ppoint;
 
@@ -44,6 +52,7 @@ typedef struct {
 	byte R, G, B;
 } color;
 
+//TODO: dynamic int
 // cresent values
 typedef struct {
 	byte *values;
@@ -52,24 +61,29 @@ typedef struct {
 
 // Definitios
 #define PI 3.141592
+
 // max len for single key, +1 for \0
 #define MAXSCHARLEN 9
+
 // i guess
 #define MAXCOLORLEN 20
+
 // escape char
 #define ESC "\x1b" // 27
+
 // max (default) number of opened files
 // soft limit
 #define MAXFDS 1024
 // hard limit = 1'048'576
 
+// default size for io buffer // only set after StopChTerm
+static char stdinbuff[BUFSIZ];
+
 // Globals
 // last key buffer, when StartCh is on
-char _lk[MAXSCHARLEN];
+char _lk[MAXSCHARLEN]; // new stdin buffer
 // last key id
 kbkey _keyid;
-// default size for io buffer
-char stdinbuff[BUFSIZ];
 // unbuffered ch
 bool _StartCh;
 
