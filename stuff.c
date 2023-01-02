@@ -112,6 +112,9 @@ bool CheckValidFd(int fd) {
 	return true;
 }
 
+//TODO: get fd array, compare to array
+//1 read, instead of N+1 reads
+// (Max) N Compares instead of FDs*N
 int GetValidFd() {
 	int i;
 	for (i = 0; !CheckValidFd(i); i++);
@@ -214,10 +217,10 @@ void TRGB (char *buff, const byte R, const byte G, const byte B) {
 	sprintf(buff, ESC"[38;2;%hhu;%hhu;%hhum", R, G, B);
 }
 
-const point GetTerminalSize () {
+upoint GetTerminalSize () {
 	struct winsize w;
 	ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-	point p = {.x = w.ws_col, .y = w.ws_row};
+	upoint p = {.x = (uint)w.ws_col, .y = (uint)w.ws_row};
 	return p;
 }
 
