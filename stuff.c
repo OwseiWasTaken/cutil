@@ -166,6 +166,10 @@ int isquare (const int base) {
 	return ipow(base, 2);
 }
 
+int isqrt(const int num) {
+	return (int)sqrt((float)num);
+}
+
 int CountDecimalDigits( int v ) {
 	int i;
 	for (i = 0; v; i++) {v = v/10;}
@@ -217,6 +221,10 @@ void TRGB (char *buff, const byte R, const byte G, const byte B) {
 	sprintf(buff, ESC"[38;2;%hhu;%hhu;%hhum", R, G, B);
 }
 
+void PRGB (const byte R, const byte G, const byte B) {
+	printf(ESC"[38;2;%hhu;%hhu;%hhum", R, G, B);
+}
+
 upoint GetTerminalSize () {
 	struct winsize w;
 	ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
@@ -236,6 +244,84 @@ void _Print_Point(const point p) {
 color RGB(byte r, byte g, byte b) {
 	color c = {.R=r, .G=g, .B=b};
 	return c;
+}
+
+int fsleep (long double t) {
+	return usleep((int) lroundl(1000000.0 * t));
+}
+
+queue_t MakeQueue() {
+	queue_t q = {.first = 0, .last = 0};
+	memset(q.qu, 0, 255*sizeof(int));
+	return q;
+}
+
+void ReallocQueue(queue_t *q) {
+	// queue: [?, ?, ?, 1, 2, 3, ?, ?]
+	// points:          f  -  l
+	// queue: [1, 2, 3, ?, ?]
+	// points: f  -  l
+
+	// memmov if last > first
+	int t[255] = {0};
+	memmove(t, q->qu+q->first, q->last*sizeof(int));
+	memmove(q->qu, t, 255);
+	q->last -= q->first;
+	q->first = 0;
+}
+
+// 0 = ok
+// -1 = realloc but failed
+int QueueAppend(queue_t *q, int item) {
+	if (q->qu[q->last]) {
+		ReallocQueue(q);
+	}
+	if (q->qu[q->last]) {
+		return -1;
+	}
+	q->qu[q->last] = item;
+	q->last++;
+	return 0;
+}
+
+int QueuePop(queue_t *q) {
+	int ret = q->qu[q->first];
+	//q->first=q->first+1;
+	q->first++;
+	return ret;
+}
+
+void _P_queue(queue_t q) {
+	printf("%d->%d\n", q.first, q.last);
+	printf("queue {\n"TAB);
+	for (byte i = 0; i<16; i++) {
+		for (byte j = 0; j<16; j++) {
+			//printf("<%d:%d>  ", 16*i+j, q.qu[16*i+j]);
+			if (i*8+j == q.first) {
+				PRGB(255,128,0);
+				printf("%d", q.qu[i*16+j]);
+				PRGB(255,255,255);
+			} else if (i*8+j == q.last-1) {
+				PRGB(255,127,128);
+				printf("%d", q.qu[i*16+j]);
+				PRGB(255,255,255);
+			} else {
+				printf("%d", q.qu[i*16+j]);
+			}
+			putc(',', stdout);
+			putc(' ', stdout);
+		}
+		printf("\b\b \n"TAB); // remove ", " put " \n\t"
+	}
+	puts("\b\b}");
+}
+
+int randint(int min, int max) {
+	return (rand() % (max-min+1))+min;
+}
+
+bool odds(int onein) {
+	return !randint(0, onein);
 }
 
 //TODO: dynamic int
