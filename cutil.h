@@ -1,5 +1,5 @@
 #ifndef cutil
-#define cutil 1
+#define cutil
 
 // Inclues
 #include <termios.h>
@@ -15,14 +15,19 @@
 #include <assert.h>
 #include <fcntl.h>
 #include <sys/types.h>
+#include <stdint.h>
 #include <stdbool.h>
 #include <dirent.h>
 
 // Types
-typedef signed char int8;
-typedef unsigned int uint;
-typedef unsigned char uint8;
-typedef unsigned char byte;
+//typedef unsigned char uint8;
+typedef uint8_t uint8;
+//typedef signed char int8;
+typedef int8_t int8;
+
+typedef short int int16;
+typedef uint8_t byte;
+typedef long double lfloat;
 // cresent values
 typedef unsigned long kbkey;
 
@@ -41,16 +46,24 @@ typedef struct {
 } upoint;
 
 typedef struct {
-	float a, r;
+	lfloat a, r;
 } polar;
 
 typedef struct {
-	float y, x;
+	lfloat y, x;
 } ppoint;
 
 typedef struct {
 	byte R, G, B;
 } color;
+
+typedef struct {
+	byte first; // first item in queue
+	byte last; // last item in queue relative to first
+	int qu[255]; // queue
+} queue_t;
+
+typedef bool safeguard;
 
 //TODO: dynamic int
 // cresent values
@@ -75,6 +88,12 @@ typedef struct {
 // soft limit
 #define MAXFDS 1024
 // hard limit = 1'048'576
+
+// mmap flag for not anon (just for style, since backed is defautl)
+#define MAP_BACKED 0
+
+// tab (since \t is just several spaces)
+#define TAB "  "
 
 // default size for io buffer // only set after StopChTerm
 static char stdinbuff[BUFSIZ];
