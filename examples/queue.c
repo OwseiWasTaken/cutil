@@ -1,7 +1,6 @@
 #include "cutil.h"
 
-int main(int argc, char *argv[]) {
-	argv++; argc--;
+int main( void ) {
 
 	queue_t q = MakeQueue();
 
