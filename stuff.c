@@ -250,9 +250,18 @@ int fsleep (long double t) {
 	return usleep((int) lroundl(1000000.0 * t));
 }
 
-queue_t MakeQueue() {
-	queue_t q = {.first = 0, .last = 0};
-	memset(q.qu, 0, 255*sizeof(int));
+queue_t *MakeQueue() {
+	queue_t *q = malloc(sizeof(queue_t));
+	q->first = 0;
+	q->last = 0;
+	memset(q->qu, 0, 255*sizeof(int));
+	return q;
+}
+
+queue_t *InitQueue(queue_t *q) {
+	q->first = 0;
+	q->last = 0;
+	memset(q->qu, 0, 255*sizeof(int));
 	return q;
 }
 
@@ -263,9 +272,11 @@ void ReallocQueue(queue_t *q) {
 	// points: f  -  l
 
 	// memmov if last > first
-	int t[255] = {0};
-	memmove(t, q->qu+q->first, q->last*sizeof(int));
-	memmove(q->qu, t, 255);
+	//int t[255] = {0};
+	//memmove(t, q->qu+q->first, q->last*sizeof(int));
+	//memmove(q->qu, t, 255);
+
+	memmove(q->qu, q->qu+q->first, q->last*sizeof(int));
 	q->last -= q->first;
 	q->first = 0;
 }
@@ -291,22 +302,34 @@ int QueuePop(queue_t *q) {
 	return ret;
 }
 
-void _P_queue(queue_t q) {
-	printf("%d->%d\n", q.first, q.last);
+int QueueRead(queue_t *q) {
+	return q->qu[q->first];
+}
+
+int QueueSize(queue_t *q) {
+	return q->last;
+}
+
+int QueueOffset(queue_t *q) {
+	return q->first;
+}
+
+void _P_queue(queue_t *q) {
+	printf("%d->%d\n", q->first, q->last);
 	printf("queue {\n"TAB);
 	for (byte i = 0; i<16; i++) {
 		for (byte j = 0; j<16; j++) {
-			//printf("<%d:%d>  ", 16*i+j, q.qu[16*i+j]);
-			if (i*8+j == q.first) {
+			//printf("<%d:%d>  ", 16*i+j, q->qu[16*i+j]);
+			if (i*8+j == q->first) {
 				PRGB(255,128,0);
-				printf("%d", q.qu[i*16+j]);
+				printf("%d", q->qu[i*16+j]);
 				PRGB(255,255,255);
-			} else if (i*8+j == q.last-1) {
+			} else if (i*8+j == q->last-1) {
 				PRGB(255,127,128);
-				printf("%d", q.qu[i*16+j]);
+				printf("%d", q->qu[i*16+j]);
 				PRGB(255,255,255);
 			} else {
-				printf("%d", q.qu[i*16+j]);
+				printf("%d", q->qu[i*16+j]);
 			}
 			putc(',', stdout);
 			putc(' ', stdout);
