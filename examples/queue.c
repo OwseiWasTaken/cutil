@@ -1,7 +1,6 @@
 #include "cutil.h"
 
 int main( void ) {
-
 	queue_t q = MakeQueue();
 
 	srand(time(NULL));
