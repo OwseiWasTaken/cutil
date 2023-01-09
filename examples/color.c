@@ -1,21 +1,33 @@
 #include "cutil.h"
 
-char strcol[MAXCOLORLEN];
+int main(int argc, char *argv[]) {
+	StartChTerm(NULL); // getch, no logging
+	bool TextProvided = false;
+	char* TestStr;
 
-int main(void) {
-	StartChTerm(NULL);
-	char TestStr[30];
+	if ( argc == 2 ) {
+		TextProvided = true;
+		TestStr = argv[1];
+	} else if ( argc > 2 ) {
+		printf("usage:\n%s [Example string]\n", argv[0]);
+		return 1;
+	}
+
+	if (!TextProvided) {
+		TestStr = malloc(14);
+		memcpy(TestStr ,"Lorem Ipsum\0", 13);
+	}
 	byte col[3] = {255,255,255};
+
 	short x = 0;
 	long k = 0;
 
-	memcpy(TestStr ,"Lorem Ipsum", 12);
 
 	while (k!=KEY_enter) {
-		TRGB(strcol, col[0], col[1], col[2]);
 		move(1, 1);
 		printf("%3hhu,%3hhu,%3hhu\n", col[0], col[1], col[2]);
-		printf("%s%s%s", strcol, TestStr, nc);
+		PRGB(col[0], col[1], col[2]);
+		printf("%s"nc, TestStr);
 		move(1, 3+(4*x));
 		flush();
 		k = GetChId();
@@ -27,13 +39,15 @@ int main(void) {
 				col[x]--;
 				break;
 			case KEY_left:
-				if (x) x--;
+				if (x) { x--; }
+				else { x=2; }
 				break;
 			case KEY_right:
 				x=(x+1)%3;
 				break;
 		}
 	}
+	if (!TextProvided) { free(TestStr); }
 	ClearLine(1,1);
 	move(1,1);
 	//TODO read argv and format accordingly
