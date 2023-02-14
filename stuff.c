@@ -228,7 +228,7 @@ void PRGB (const byte R, const byte G, const byte B) {
 upoint GetTerminalSize () {
 	struct winsize w;
 	ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
-	upoint p = {.x = (uint)w.ws_col, .y = (uint)w.ws_row};
+	upoint p = {.x = (uint32_t)w.ws_col, .y = (uint32_t)w.ws_row};
 	return p;
 }
 
