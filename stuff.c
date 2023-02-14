@@ -346,6 +346,17 @@ int randint(int min, int max) {
 bool odds(int onein) {
 	return !randint(0, onein);
 }
+char *revstr(char *dest, const char *src) {
+	size_t n = strlen(src);
+	for (size_t i = (n-=1);i+1; i--) dest[n-i] = src[i];
+	return dest;
+}
+
+char *revnstr(char *dest, const char *src, size_t n) {
+	for (size_t i = (n-=1);i+1; i--) dest[n-i] = src[i];
+	return dest;
+}
+
 
 //TODO: dynamic int
 //dint MakeDint(size_t size) {
