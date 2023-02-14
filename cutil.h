@@ -1,23 +1,26 @@
 #ifndef cutil
 #define cutil
 
-// Inclues
-#include <termios.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/ioctl.h>
-#include <sys/mman.h>
+// Includes
 #include <string.h>
-#include <unistd.h>
+#include <termios.h>
+#include <time.h>
 #include <signal.h>
 #include <math.h>
-#include <time.h>
 #include <assert.h>
 #include <fcntl.h>
+
+#include <dirent.h>
+
+#include <sys/ioctl.h>
+#include <sys/mman.h>
 #include <sys/types.h>
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <unistd.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include <dirent.h>
 
 // Types
 //typedef unsigned char uint8;
@@ -29,7 +32,8 @@ typedef short int int16;
 typedef uint8_t byte;
 typedef long double lfloat;
 // cresent values
-typedef unsigned long kbkey;
+typedef uint64_t kbkey;
+//typedef unsigned long kbkey;
 
 typedef struct {
 	int year, day, hour, minute, seccond;
@@ -42,7 +46,7 @@ typedef struct {
 } point;
 
 typedef struct {
-	uint y, x;
+	uint32_t y, x;
 } upoint;
 
 typedef struct {
@@ -76,7 +80,7 @@ typedef struct {
 #define PI 3.141592
 
 // max len for single key, +1 for \0
-#define MAXSCHARLEN 9
+#define MAXSCHARLEN 8
 
 // i guess
 #define MAXCOLORLEN 20
@@ -116,10 +120,10 @@ int CountDecimalDigits( int v );
 #define	nc "\x1b[38;2;255;255;255m"
 
 // Cutil files
-// funcs
+// keys
 #include "keys.c"
 
-// keys
+// funcs
 #include "stuff.c"
 
 #endif
