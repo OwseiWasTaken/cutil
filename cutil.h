@@ -1,5 +1,5 @@
-#ifndef cutil
-#define cutil
+#ifndef CUTIL_H_
+#define CUTIL_H_
 
 // Includes
 #include <string.h>
@@ -113,6 +113,33 @@ bool _StartCh;
 // funcs used before they are defined
 int CountDecimalDigits( int v );
 
+typedef struct _node {
+	struct _node *next;
+	void *obj;
+} node;
+
+typedef struct _hash_node {
+	void *obj;
+	byte *key;
+	size_t keylen;
+} hash_node;
+
+typedef struct _hash_table {
+	size_t size;
+	// if isowner is set to true,
+	// hash_table_free will feel hash_table's objects
+	bool isowner;
+	//size_t (byte data[], size_t size);
+	// each node (used as linked list) has a hash_node as it's obj
+	node **array;
+	size_t (*hash_function)(byte *key, size_t keylen);
+	size_t used; // nodes allocated
+	size_t entries; // entries in nodes
+} hash_table;
+
+//typedef struct {
+//
+//} hash_table;
 
 // Colors
 #define	Red "\x1b[38;2;255;0;0m"
@@ -126,4 +153,4 @@ int CountDecimalDigits( int v );
 // funcs
 #include "stuff.c"
 
-#endif
+#endif // CUTIL_H_

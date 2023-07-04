@@ -11,8 +11,13 @@ void StartChTerm (FILE *log) {
 	tcgetattr(STDIN_FILENO, &term);
 	if (log) fprintf(log, "this tty: %s\n", ttyname(STDIN_FILENO));
 
-	system("/bin/stty -g > /tmp/restore");
-	if (log) fprintf(log, "tty config saved to '/tmp/restore'\n");
+	//TODO try to save to ~/.tty_restore
+	int rsts = (system("/bin/stty -g > /tmp/restore")); // must be able to copy file
+	if (rsts && log) {
+		fprintf(log, "can't save tty config '/tmp/restore'\n");
+	} else if (log) {
+		fprintf(log, "tty config saved to '/tmp/restore'\n");
+	}
 
 	char reconfig[36+10]; /* 36 = comamnd len, 10 = /dev/ttyNN */
 	// -F for this tty
@@ -20,20 +25,25 @@ void StartChTerm (FILE *log) {
 	// cbreak to keep ^C -> SIGINT
 	// min 1 = feed buffer to program
 	sprintf(reconfig, "/bin/stty -F %s -echo cbreak min 1", ttyname(STDIN_FILENO));
-	system(reconfig);
-	if (log) fprintf(log, "tty reconfigured, so linefeed buffering is off\n");
+	int x = system(reconfig); // must be able to set config
+	if (log) fprintf(log, "tty tried to be reconfigured ($?=%d), so linefeed buffering is off\n", x);
 }
 
+//TODO: return -1 on error
 void StopChTerm (FILE *log) {
 	if (!_StartCh) return;
 	setvbuf(stdin, stdinbuff, _IOLBF, BUFSIZ);
 	_StartCh = false;
 
-	system("/bin/stty $(/bin/cat /tmp/restore)");
+	int restore = system("/bin/stty $(/bin/cat /tmp/restore)"); // must be able to reset config
+	if (restore) {assert(system("/bin/reset"));}
 	if (log) fprintf(log, "\ntty config restored\n");
 
-	system("/bin/rm /tmp/restore");
-	if (log) fprintf(log, "file '/tmp/restore' deleted\n");
+	if (system("/bin/rm -f /tmp/restore")) {
+		if (log) fprintf(log, "couldn't delete file '/tmp/restore'\n");
+	} else {
+		if (log) fprintf(log, "file '/tmp/restore' deleted\n");
+	}
 }
 
 inline bool IsChTermOn() { return _StartCh; }
@@ -357,44 +367,257 @@ char *revnstr(char *dest, const char *src, size_t n) {
 	return dest;
 }
 
+upoint UpointDiff(upoint a, upoint b) {
+	upoint p = {.y=a.y - b.y, .x = a.x - b.x};
+	return p;
+}
 
-//TODO: dynamic int
-//dint MakeDint(size_t size) {
-//	dint d = {.size = size, .values = malloc(size)};
-//	return d;
-//}
-//
-//inline bool overflow(char c, int add) {
-//	return ((c+add)%255)<c;
-//}
-//
-//void _Print_Dint(const dint d) {
-//	for (int i = 0; i<d.size; i++) {
-//		printf("%hhu,", d.values[i]);
-//	}
-//	printf("\b \n");
-//}
-//
-//void AddsiDint (dint *d, int add, int offset) {
-//	byte c;
-//	for (int i = 0; i<sizeof(add); i++) {
-//		c = (byte)(add>>(8*i))%254;
-//		printf("%i: add: %hhu from %u of: %d == %d\n",
-//			i, c, add>>(8*i),
-//			(d->values[i]+c)%255<d->values[i],
-//			overflow(d->values[i], c)
-//		);
-//		if (!c) {continue;}
-//		if (overflow(d->values[i], c)) {
-//			d->values[i+1]++;
-//		}
-//		d->values[i] += c;
-//	}
-//}
-//
-//void FreeDint(dint *d) {
-//	free(d->values);
-//	d = NULL;
-//}
+upoint MakeU(uint32_t x, uint32_t y) {
+	upoint p = {.y=y, .x=x};
+	return p;
+}
+
+size_t min(size_t a, size_t b) {
+	return a<b?a:b;
+}
+
+size_t max(size_t a, size_t b) {
+	return a>b?a:b;
+}
+
+node* node_alloc(void *obj) {
+	node* n = (node*)malloc(sizeof(node));
+	n->obj = obj;
+	n->next = NULL;
+	return n;
+}
+
+// warning, can do an infinite loop
+node* get_last_node(node *head) {
+	for (;true;) {
+		if (head->next == NULL) return head;
+		head = head->next;
+	}
+	return NULL; // can't reach
+}
+
+// sets *len to the size of the link
+node* get_last_node_len(node *head, int *len) {
+	if (head == NULL) return NULL;
+	for (int i = 0;true;i++) {
+		if (head->next == NULL) {
+			*len = i;
+			return head;
+		}
+		head = head->next;
+	}
+	return NULL; // can't reach
+}
+
+node* node_append(node *head, void *obj) {
+	node *tail = get_last_node(head);
+	tail->next = node_alloc(obj);
+	return tail->next;
+}
+
+void node_list_free(node *head, bool free_objs) {
+	node* next;
+	for (;true;) {
+		next = head->next;
+		if (free_objs) free(head->obj);
+		free(head);
+		head = next;
+		if (head == NULL) return;
+	}
+}
+
+void node_list_print(node *head) {
+	printf("Node List:\n");
+	for (int i = 0; head!=NULL; i++) {
+		printf("%i: %p\n", i, head->obj);
+		head = head->next;
+	}
+}
+
+node *node_list_search(node *head, byte *key, size_t keylen) {
+	for (;true;) {
+		if (strncmp(head->obj, (char*)key, keylen)==0) return head;
+		if (head->next == NULL) return NULL;
+		head = head->next;
+	}
+	return NULL; // can't reach
+}
+
+// use user function to see if nodes are equal, insted of strncmp
+node *node_list_search_fn(
+	node *head, void *key, size_t keylen,
+	bool (*compare_function)(void *obj, void *key, size_t keylen)
+) {
+	for (;true;) {
+		if (compare_function(head->obj, key, keylen)) return head;
+		if (head->next == NULL) return NULL;
+		head = head->next;
+	}
+	return NULL; // can't reach
+}
+
+int node_print(node *n) {
+	return printf("node{.obj=%p, .next=%p}\n",
+		n->obj, n->next
+	);
+}
+
+int hash_node_print(hash_node *hnode) {
+	return printf("hash_node{.obj=%p, .key=%p, .keylen=%ld}\n",
+		hnode->obj, hnode->key, hnode->keylen
+	);
+}
+
+// string -> int
+int _P_hash_node_print(hash_node *hnode) {
+	return printf("\"%s\"=>%lX\n",
+		(char*)hnode->key,
+		*(size_t*)(hnode->obj)
+	);
+}
+
+hash_table *hash_table_alloc(
+	size_t size, bool isowner,
+	size_t (*hash_function)(byte *key, size_t keylen)
+) {
+	hash_table *table = malloc(sizeof(hash_table));
+	node **arr = calloc(sizeof(node), size);
+	for (size_t i = 0; i<size; i++) {
+		//arr[i] = node_alloc(malloc(sizeof(hash_node)));
+		arr[i] = NULL;
+	}
+	table->size = size;
+	table->isowner = isowner;
+	table->array = arr;
+	table->hash_function = hash_function;
+	table->used = 0;
+	table->entries = 0;
+	return table;
+}
+
+void hash_table_free(hash_table *table) {
+	for (size_t i = 0; i<table->size; i++) {
+		node* nd = table->array[i];
+		for (;nd!=NULL;) {
+			// detele objects (if owner) and keys
+			if (table->isowner) {
+				free(((hash_node*)nd->obj)->obj);
+			}
+			free(((hash_node*)nd->obj)->key);
+			nd = nd->next;
+		}
+		// delete nodes and hash_nodes
+		if (table->array[i] != NULL) {
+			node_list_free(table->array[i], true);
+		}
+	}
+	free(table->array);
+	free(table);
+}
+
+// could speedup if, instead of using malloc than node_alloc
+// pointed node to same space as
+int hash_table_add(
+	hash_table *table,
+	byte *key, size_t keylen, void *obj
+) {
+	table->entries++;
+	int node_count = 0;
+	size_t index = table->hash_function(key, keylen);
+	assert(index > 0); // hash funcion failed
+	index = index%table->size;
+	node *tail = get_last_node_len((table->array)[index], &node_count);
+
+	hash_node *hnode = malloc(sizeof(hash_node));
+	hnode->obj = obj;
+	hnode->keylen = keylen;
+	hnode->key = calloc(sizeof(byte), keylen);
+	memcpy(hnode->key, key, keylen);
+
+	if (tail == NULL) {
+		table->used++;
+		table->array[index] = node_alloc(hnode);
+	} else {
+		node_append(tail, hnode);
+	}
+	return node_count+1;
+}
+
+void _P_hash_table(hash_table *table) {
+	for (size_t i = 0; i<table->size; i++) {
+		node* nd = table->array[i];
+		printf("link %li\n", i);
+		for (;nd!=NULL;) {
+			hash_node *hnode = (hash_node*)nd->obj;
+			printf("\t");
+			_P_hash_node_print(hnode);
+			nd = nd->next;
+		}
+	}
+}
+
+bool node_list_compare_hash_node(
+	void *_obj, void *key, size_t keylen
+) {
+	hash_node *obj = (hash_node*)_obj;
+	if (keylen != obj->keylen) return false;
+	return strncmp((char*)obj->key, key, keylen)==0;
+}
+
+hash_node *hash_table_search_node(
+	hash_table *table,
+	byte *key, size_t keylen
+) {
+	size_t index = table->hash_function(key, keylen);
+	assert(index > 0); // hash funcion failed
+	index = index%table->size;
+	node *head = (table->array)[index];
+
+	if (head == NULL) {
+		printf("No such key %s\n", key);
+		return NULL;
+	}
+
+	return ((hash_node*)node_list_search_fn(
+		head, key, keylen,
+		node_list_compare_hash_node
+	)->obj);
+}
+
+void *hash_table_search(
+	hash_table *table,
+	byte *key, size_t keylen
+) {
+	return hash_table_search_node(table, key, keylen)->obj;
+}
+
+// is also colision chance
+float hash_table_load_node_factor(hash_table *table) {
+	return (float)table->used/(float)table->size;
+}
+
+float hash_table_load_entry_factor(hash_table *table) {
+	return (float)table->entries/(float)table->size;
+}
+
+void _P_hash_table_info(hash_table *table) {
+	printf("load entry factor = %li/%li = %f\n",
+		table->entries, table->size,
+		hash_table_load_entry_factor(table)
+	);
+	printf("load node factor = %li/%li = %f\n",
+		table->used, table->size,
+		hash_table_load_node_factor(table)
+	);
+	printf("entries per node = %li/%li = %f\n",
+		table->entries, table->used,
+		(float)table->entries/(float)table->used
+	);
+}
 
 #endif
