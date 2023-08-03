@@ -9,6 +9,7 @@
 #include <math.h>
 #include <assert.h>
 #include <fcntl.h>
+#include <errno.h>
 
 #include <dirent.h>
 
@@ -117,6 +118,11 @@ typedef struct _node {
 	struct _node *next;
 	void *obj;
 } node;
+
+typedef struct _linked_list {
+	node *head;
+	size_t len;
+} linked_list;
 
 typedef struct _hash_node {
 	void *obj;
