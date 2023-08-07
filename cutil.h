@@ -31,9 +31,6 @@ typedef int8_t int8;
 typedef short int int16;
 typedef uint8_t byte;
 typedef long double lfloat;
-// cresent values
-typedef uint64_t kbkey;
-//typedef unsigned long kbkey;
 
 typedef struct {
 	int year, day, hour, minute, seccond;
@@ -79,8 +76,8 @@ typedef struct {
 // Definitios
 #define PI 3.141592
 
-// max len for single key, +1 for \0
-#define MAXSCHARLEN 8
+// i hope it fits all chars
+#define MAXCHARLEN 7
 
 // i guess
 #define MAXCOLORLEN 20
@@ -104,9 +101,7 @@ static char stdinbuff[BUFSIZ];
 
 // Globals
 // last key buffer, when StartCh is on
-char _lk[MAXSCHARLEN]; // new stdin buffer
-// last key id
-kbkey _keyid;
+char LastKey[MAXCHARLEN]; // new stdin buffer
 // unbuffered ch
 bool _StartCh;
 
@@ -118,28 +113,23 @@ typedef struct _node {
 	void *obj;
 } node;
 
-typedef struct _hash_node {
+typedef struct _Hashnode {
 	void *obj;
 	byte *key;
 	size_t keylen;
-} hash_node;
+} Hashnode;
 
-typedef struct _hash_table {
+typedef struct HashTable {
 	size_t size;
 	// if isowner is set to true,
-	// hash_table_free will feel hash_table's objects
+	// HashTable_free will feel HashTable's objects
 	bool isowner;
-	//size_t (byte data[], size_t size);
-	// each node (used as linked list) has a hash_node as it's obj
+	// each node has a struct _Hashnode as it's obj
 	node **array;
-	size_t (*hash_function)(byte *key, size_t keylen);
+	size_t (*HashFunction)(byte *key, size_t keylen);
 	size_t used; // nodes allocated
 	size_t entries; // entries in nodes
-} hash_table;
-
-//typedef struct {
-//
-//} hash_table;
+} HashTable;
 
 // Colors
 #define	Red "\x1b[38;2;255;0;0m"

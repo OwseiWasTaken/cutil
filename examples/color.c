@@ -25,23 +25,32 @@ int main(int argc, char *argv[]) {
 
 	while (k!=KEY_enter) {
 		move(1, 1);
+		PRGB(255,255,255);
 		printf("%3hhu,%3hhu,%3hhu\n", col[0], col[1], col[2]);
 		PRGB(col[0], col[1], col[2]);
-		printf("%s"nc, TestStr);
+		printf("%s\n"nc, TestStr);
 		move(1, 3+(4*x));
 		flush();
 		k = GetChId();
 		switch (k) {
+			case KEY_k:
+			case KEY_w:
 			case KEY_up:
 				col[x]++;
 				break;
+			case KEY_j:
+			case KEY_s:
 			case KEY_down:
 				col[x]--;
 				break;
+			case KEY_h:
+			case KEY_a:
 			case KEY_left:
 				if (x) { x--; }
 				else { x=2; }
 				break;
+			case KEY_l:
+			case KEY_d:
 			case KEY_right:
 				x=(x+1)%3;
 				break;
@@ -51,7 +60,7 @@ int main(int argc, char *argv[]) {
 	ClearLine(1,1);
 	move(1,1);
 	//TODO read argv and format accordingly
-	printf("\\x1b[38;2;%hhu;%hhu;%hhum", col[0],col[1],col[2]);
+	printf("\n\\x1b[38;2;%hhu;%hhu;%hhum", col[0],col[1],col[2]);
 	StopChTerm(NULL);
 }
 

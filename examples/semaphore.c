@@ -1,5 +1,7 @@
 #include "cutil.h"
 
+//TODO make actual semaphour with MutExes and stuff
+
 typedef	queue_t sem_t;
 
 #define SEMSLEEP 0.3
