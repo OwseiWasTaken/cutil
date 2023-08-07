@@ -376,15 +376,21 @@ size_t max(size_t a, size_t b) {
 	return a>b?a:b;
 }
 
-node* nodeAlloc(void *obj) {
-	node* n = (node*)malloc(sizeof(node));
+int node_print(node *n) {
+	return printf("node{.obj=%p, .next=%p}\n",
+		n->obj, n->next
+	);
+}
+
+node *node_alloc(void *obj) {
+	node *n = (node*)malloc(sizeof(node));
 	n->obj = obj;
 	n->next = NULL;
 	return n;
 }
 
 // warning, can do an infinite loop
-node* GetLastnode(node *head) {
+node *get_last_node(node *head) {
 	for (;true;) {
 		if (head->next == NULL) return head;
 		head = head->next;
@@ -392,8 +398,9 @@ node* GetLastnode(node *head) {
 	return NULL; // can't reach
 }
 
-// sets *len to the size of the link
-node* GetLastnodeLen(node *head, int *len) {
+// sets *len to the size of the list
+node *get_last_node_len(node *head, int *len) {
+	*len = -1;
 	if (head == NULL) return NULL;
 	for (int i = 0;true;i++) {
 		if (head->next == NULL) {
@@ -405,14 +412,14 @@ node* GetLastnodeLen(node *head, int *len) {
 	return NULL; // can't reach
 }
 
-node *nodeAppend(node *head, void *obj) {
-	node *tail = GetLastnode(head);
-	tail->next = nodeAlloc(obj);
+node *node_append(node *head, void *obj) {
+	node *tail = get_last_node(head);
+	tail->next = node_alloc(obj);
 	return tail->next;
 }
 
-void nodeListFree(node *head, bool free_objs) {
-	node* next;
+void node_list_free(node *head, bool free_objs) {
+	node *next;
 	for (;true;) {
 		next = head->next;
 		if (free_objs) free(head->obj);
@@ -430,15 +437,6 @@ void nodeListPrint(node *head) {
 	}
 }
 
-node *nodeListSearch(node *head, byte *key, size_t keylen) {
-	for (;true;) {
-		if (strncmp(head->obj, (char*)key, keylen)==0) return head;
-		if (head->next == NULL) return NULL;
-		head = head->next;
-	}
-	return NULL; // can't reach
-}
-
 // use user function to see if nodes are equal, insted of strncmp
 node *nodeListSearchFn(
 	node *head, void *key, size_t keylen,
@@ -452,10 +450,144 @@ node *nodeListSearchFn(
 	return NULL; // can't reach
 }
 
-int nodePrint(node *n) {
-	return printf("node{.obj=%p, .next=%p}\n",
-		n->obj, n->next
-	);
+linked_list *list_alloc() {
+	linked_list *list = malloc(sizeof(linked_list));
+	list->len = 0;
+	list->head = NULL;
+}
+
+void list_free(linked_list *list, bool free_objs) {
+	node_list_free(list->head, free_objs);
+	free(list);
+}
+
+void list_reset(linked_list *list, bool free_objs) {
+	node_list_free(list->head, free_objs);
+	list->len = 0;
+	list->head = NULL;
+}
+
+node *list_get_node(linked_list *list, int index) {
+	if (index >= list->len) {
+		errno = EFAULT;
+		return NULL;
+	}
+
+	node *tail = list->head;
+	for (int i = 0; i<index; i++) {
+		if (tail->next == NULL) return NULL;
+		tail = tail->next;
+	}
+	return tail;
+}
+
+
+void *list_get(linked_list *list, int index) {
+	return list_get_node(list, index)->obj;
+}
+
+bool list_insert(linked_list *list, void *obj, int index) {
+	if (index == 0) {
+		if (list->head == NULL) {
+			list->head = node_alloc(obj);
+			list->len=1;
+		} else {
+			node *nd = node_alloc(obj);
+			nd->next = list->head;
+			list->head = nd;
+			list->len++;
+		}
+		return true;
+	} else if (index < list->len) {
+		node *tail = list->head;
+		for (int i = 1; i<index; i++) {
+			if (tail->next == NULL) return NULL;
+			tail = tail->next;
+		}
+		node *nd = node_alloc(obj);
+		nd->next = tail->next;
+		tail->next = nd;
+		list->len++;
+		return true;
+	} else if (index == list->len) {
+		if (list->head == NULL) {
+			list->head = node_alloc(obj);
+			list->len=1;
+		} else {
+			node_append(list->head, obj);
+			list->len++;
+		}
+		return true;
+	}
+	return false;
+}
+
+bool list_append(linked_list *list, void *obj) {
+	return list_insert(list, obj, list->len);
+}
+
+bool list_remove(linked_list *list, int index, bool free_obj) {
+	if (list->len < index) return false;
+
+	if (index == 0) {
+		node *next = list->head->next;
+		if (free_obj) {
+			free(list->head->obj);
+		}
+		free(list->head);
+		list->head = next;
+		list->len--;
+	} else {
+		node *prev = list_get_node(list, index-1);
+		node *next = prev->next->next;
+		//node_print(prev);
+		//node_print(prev->next);
+		//node_print(next);
+		if (free_obj) {
+			free(prev->next->obj);
+		}
+		free(prev->next);
+		prev->next = next;
+		list->len--;
+	}
+}
+
+void list_iter_node(
+	linked_list *list,
+	void (*forEach)(linked_list *list, int index, node *obj)
+) {
+	node *tail = list->head;
+	if (tail == NULL) return;
+
+	for (int i = 0;i<list->len;i++) {
+		forEach(list, i, tail);
+		if (tail->next != NULL) {
+			tail = tail->next;
+		} else {
+			return;
+		}
+	}
+}
+
+void list_iter(
+	linked_list *list,
+	void (*forEach)(linked_list *list, int index, void *obj)
+) {
+	node *tail = list->head;
+	if (tail == NULL) return;
+
+	for (int i = 0;i<list->len;i++) {
+		forEach(list, i, tail->obj);
+		if (tail->next != NULL) {
+			tail = tail->next;
+		} else {
+			return;
+		}
+	}
+}
+
+void node_iter_print(linked_list *list, int index, node *nd) {
+	printf("%d: {.obj=%p, .next=%p}\n", index, nd->obj, nd->next);
 }
 
 int HashnodePrint(Hashnode *hnode) {
@@ -541,7 +673,7 @@ int HashTableAdd(
 
 void _P_HashTable(HashTable *table) {
 	for (size_t i = 0; i<table->size; i++) {
-		node* nd = table->array[i];
+		node *nd = table->array[i];
 		printf("link %li\n", i);
 		for (;nd!=NULL;) {
 			Hashnode *hnode = (Hashnode*)nd->obj;;
